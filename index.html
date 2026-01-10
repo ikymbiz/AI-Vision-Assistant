@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI Vision Pro - File & Camera</title>
+    <title>AI Vision Pro - native save</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
-        :root { --primary: #4285f4; --success: #34a853; --drive: #1fa463; --dark: #202124; --bg: #f8f9fa; }
+        :root { --primary: #4285f4; --success: #34a853; --dark: #202124; --bg: #f8f9fa; }
         body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 10px; color: var(--dark); line-height: 1.5; }
         .container { max-width: 500px; margin: auto; background: white; padding: 15px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
         .settings { text-align: left; background: #f1f3f4; padding: 12px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #dadce0; font-size: 13px; }
@@ -16,7 +15,7 @@
         /* プレビューエリア */
         .preview-wrapper { position: relative; width: 100%; border-radius: 16px; overflow: hidden; background: #000; aspect-ratio: 3/4; margin-bottom: 12px; }
         video, #file-preview { width: 100%; height: 100%; object-fit: cover; display: block; }
-        #file-preview { display: none; background: #333; } /* ファイル時はこちらを表示 */
+        #file-preview { display: none; background: #333; }
 
         .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
         button { padding: 15px; font-size: 15px; cursor: pointer; border: none; border-radius: 14px; font-weight: bold; color: white; transition: 0.3s; }
@@ -24,14 +23,18 @@
         
         .btn-capture { background: var(--primary); grid-column: span 2; border-radius: 30px; font-size: 18px; }
         .btn-torch { background: #f4b400; color: #000; }
-        .btn-file { background: #673ab7; } /* 紫色：ファイル選択 */
+        .btn-file { background: #673ab7; }
         .btn-copy { background: #6c757d; }
-        .btn-drive { background: var(--drive); grid-column: span 2; }
+        .btn-save { background: var(--success); grid-column: span 2; } /* 保存ボタン */
 
         #status { font-size: 12px; padding: 10px; border-radius: 10px; margin-bottom: 10px; font-weight: bold; background: #fff3cd; text-align: center; word-break: break-all; }
         .result-box { position: relative; text-align: left; background: #fff; border: 2px solid #f0f0f0; border-radius: 16px; padding: 25px 15px 15px; min-height: 200px; margin-top: 10px; }
         .floating-copy { position: absolute; top: 10px; right: 10px; width: 40px; height: 40px; background: #f8f9fa; border: 1px solid #eee; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; z-index: 10; }
         
+        #markdown-view { font-size: 14px; }
+        #markdown-view table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 12px; }
+        #markdown-view th, #markdown-view td { border: 1px solid #ddd; padding: 8px; }
+
         .history-item { padding: 12px; border-bottom: 1px solid #f8f8f8; font-size: 11px; cursor: pointer; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     </style>
 </head>
@@ -40,12 +43,11 @@
 <div class="container">
     <h3 style="margin: 0 0 15px 0; color:var(--primary); text-align:center;">🤖 AI Vision Pro</h3>
 
-    <div id="status">カメラ準備中...</div>
+    <div id="status">準備中...</div>
 
     <details class="settings">
-        <summary>⚙️ API / Drive 設定</summary>
+        <summary>⚙️ 設定 (Gemini APIキーのみ)</summary>
         <input type="password" id="gemini-key" placeholder="Gemini API Key">
-        <input type="text" id="drive-client-id" placeholder="Google Cloud Client ID">
         <button onclick="saveKeys()" style="background:var(--dark); width:100%; margin-top:8px; color:white; padding:8px; border:none; border-radius:8px;">設定を保存</button>
     </details>
 
@@ -57,14 +59,11 @@
     
     <div class="controls">
         <button class="btn-capture" id="main-action-btn" onclick="captureAndAnalyze()">📸 解析を開始</button>
-        
         <button class="btn-torch" id="torch-btn" onclick="toggleTorch()">🔦 ライトON</button>
-        
         <button class="btn-file" onclick="document.getElementById('image-input').click()">📁 画像読込</button>
         <input type="file" id="image-input" accept="image/*" style="display:none;" onchange="handleFileSelect(event)">
-        
         <button class="btn-copy" onclick="copyToClipboard()">📋 コピー</button>
-        <button id="btn-drive" class="btn-drive" onclick="saveToDrive()">📁 Google Driveに保存</button>
+        <button class="btn-save" onclick="saveAsFile()">💾 名前を付けて保存 (Drive可)</button>
     </div>
 
     <div class="result-box">
@@ -91,49 +90,27 @@
     
     let isTorchOn = false;
     let videoStream = null;
-    let isFileMode = false; // 現在ファイルを表示中かどうか
-    let tokenClient;
-    let accessToken = null;
+    let isFileMode = false;
 
     window.onload = () => {
         document.getElementById('gemini-key').value = localStorage.getItem('gemini_api_key') || "";
-        document.getElementById('drive-client-id').value = localStorage.getItem('drive_client_id') || "";
         setupCamera();
         loadHistory();
-        initGoogleAuth();
     };
-
-    // --- Google Drive 認証の初期化 ---
-    function initGoogleAuth() {
-        const clientID = document.getElementById('drive-client-id').value;
-        if (!clientID || typeof google === 'undefined') return;
-        tokenClient = google.accounts.oauth2.initTokenClient({
-            client_id: clientID,
-            scope: 'https://www.googleapis.com/auth/drive.file',
-            callback: (response) => {
-                if (response.access_token) {
-                    accessToken = response.access_token;
-                    executeDriveUpload();
-                }
-            },
-        });
-    }
 
     async function setupCamera() {
         try {
             videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
             video.srcObject = videoStream;
-            updateStatus("✅ カメラ準備完了", "#d4edda");
+            updateStatus("✅ 準備完了", "#d4edda");
         } catch (err) {
-            updateStatus("❌ カメラ起動制限中 (ファイル読込は可能です)", "#f8d7da");
+            updateStatus("❌ カメラ制限中 (画像読込は可能です)", "#f8d7da");
         }
     }
 
-    // ファイルが選択された時の処理
     function handleFileSelect(event) {
         const file = event.target.files[0];
         if (!file) return;
-
         const reader = new FileReader();
         reader.onload = (e) => {
             filePreview.src = e.target.result;
@@ -156,13 +133,6 @@
         document.getElementById('torch-btn').innerText = isTorchOn ? "🔦 ライトOFF" : "🔦 ライトON";
     }
 
-    function saveKeys() {
-        localStorage.setItem('gemini_api_key', document.getElementById('gemini-key').value);
-        localStorage.setItem('drive_client_id', document.getElementById('drive-client-id').value);
-        alert("保存しました。");
-        location.reload();
-    }
-
     async function captureAndAnalyze() {
         const key = document.getElementById('gemini-key').value.trim();
         if (!key) return alert("Geminiキーを設定してください");
@@ -171,12 +141,10 @@
         const context = canvas.getContext('2d');
 
         if (isFileMode) {
-            // ファイルモード：表示されている画像をキャンバスに描画
             canvas.width = filePreview.naturalWidth;
             canvas.height = filePreview.naturalHeight;
             context.drawImage(filePreview, 0, 0);
         } else {
-            // カメラモード：現在のビデオフレームを描画
             if (video.videoWidth === 0) return updateStatus("⌛ カメラ待機中...", "#fff3cd");
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
@@ -184,7 +152,6 @@
         }
 
         const base64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
-
         const prompt = `プロの文書解析者として、提供された画像から以下の2点を出力してください。
 
 1. 【再現内容】
@@ -208,7 +175,7 @@
 構造化された形式で直接回答を開始すること。`;
 
         try {
-            // gemini-2.5-flash を使用
+            // gemini-2.5-flash (安定版) を使用
             const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -217,7 +184,7 @@
 
             const data = await response.json();
             const result = data.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (!result) throw new Error("解析失敗。APIキーや画像を確認してください。");
+            if (!result) throw new Error("解析失敗。APIキー等を確認してください。");
 
             markdownView.innerHTML = marked.parse(result);
             rawText.value = result;
@@ -228,32 +195,36 @@
         }
     }
 
-    // --- Google Drive 保存処理 ---
-    function saveToDrive() {
-        if (!rawText.value) return alert("解析結果がありません");
-        if (!tokenClient) return alert("Drive設定が未完了です");
-        if (!accessToken) { tokenClient.requestAccessToken(); } else { executeDriveUpload(); }
-    }
+    // --- OS標準の保存ダイアログを呼び出す ---
+    async function saveAsFile() {
+        const content = rawText.value;
+        if (!content) return alert("保存する内容がありません");
 
-    async function executeDriveUpload() {
-        updateStatus("📁 Driveへアップロード中...", "#d1ecf1");
-        const fileName = "AI_Vision_" + new Date().getTime() + ".txt";
-        try {
-            const metadata = { name: fileName, mimeType: 'text/plain' };
-            const form = new FormData();
-            form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-            form.append('file', new Blob([rawText.value], { type: 'text/plain' }));
+        const fileName = `AI_Vision_${new Date().getTime()}.txt`;
 
-            const resp = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-                method: 'POST',
-                headers: { 'Authorization': 'Bearer ' + accessToken },
-                body: form
-            });
-            if (resp.ok) {
-                updateStatus("✅ Drive保存成功", "#d4edda");
-                alert("Driveに保存されました: " + fileName);
-            } else { throw new Error("アップロード失敗"); }
-        } catch (e) { updateStatus("❌ Drive保存エラー", "#f8d7da"); }
+        // PCブラウザ用 (File System Access API)
+        if ('showSaveFilePicker' in window) {
+            try {
+                const handle = await window.showSaveFilePicker({
+                    suggestedName: fileName,
+                    types: [{ description: 'Text File', accept: { 'text/plain': ['.txt'] } }]
+                });
+                const writable = await handle.createWritable();
+                await writable.write(content);
+                await writable.close();
+                updateStatus("✅ 保存しました", "#d4edda");
+            } catch (err) { console.log("キャンセルされました"); }
+        } else {
+            // スマホ用 (通常のダウンロード。保存先でDriveを選択可能)
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            a.click();
+            URL.revokeObjectURL(url);
+            updateStatus("📥 ファイルを書き出しました (保存先を選択してください)", "#d1ecf1");
+        }
     }
 
     function copyToClipboard() {
@@ -263,6 +234,12 @@
             setTimeout(() => { copyIcon.innerText = "📋"; }, 2000);
             updateStatus("📋 コピーしました", "#d1ecf1");
         });
+    }
+
+    function saveKeys() {
+        localStorage.setItem('gemini_api_key', document.getElementById('gemini-key').value);
+        alert("設定を保存しました。");
+        location.reload();
     }
 
     function updateStatus(msg, bg) { status.innerText = msg; status.style.background = bg; }
