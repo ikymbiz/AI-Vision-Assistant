@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI Vision Pro - native save</title>
+    <title>AI Vision Pro - Capture Fix</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         :root { --primary: #4285f4; --success: #34a853; --dark: #202124; --bg: #f8f9fa; }
@@ -100,8 +100,14 @@
 
     async function setupCamera() {
         try {
+            // カメラの使用をリクエスト
             videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
             video.srcObject = videoStream;
+            // ビデオ要素を表示し、静止画プレビューを隠す（初期状態）
+            video.style.display = "block";
+            filePreview.style.display = "none";
+            isFileMode = false;
+            document.getElementById('main-action-btn').innerText = "📸 解析を開始";
             updateStatus("✅ 準備完了", "#d4edda");
         } catch (err) {
             updateStatus("❌ カメラ制限中 (画像読込は可能です)", "#f8d7da");
@@ -114,9 +120,15 @@
         const reader = new FileReader();
         reader.onload = (e) => {
             filePreview.src = e.target.result;
+            // 画像ファイルが選択されたら、ビデオを隠して静止画を表示
             filePreview.style.display = "block";
             video.style.display = "none";
             isFileMode = true;
+            // カメラストリームを停止（オプション）
+            if (videoStream) {
+                videoStream.getTracks().forEach(track => track.stop());
+                videoStream = null;
+            }
             updateStatus("📁 ファイルを読み込みました", "#d1ecf1");
             document.getElementById('main-action-btn').innerText = "🔍 この画像を解析";
         };
@@ -137,21 +149,47 @@
         const key = document.getElementById('gemini-key').value.trim();
         if (!key) return alert("Geminiキーを設定してください");
 
-        updateStatus("⌛ AI解析中...", "#e2e3e5");
+        updateStatus("📷 画像をキャプチャ中...", "#e2e3e5");
         const context = canvas.getContext('2d');
 
         if (isFileMode) {
+            // ファイルモードの場合
             canvas.width = filePreview.naturalWidth;
             canvas.height = filePreview.naturalHeight;
             context.drawImage(filePreview, 0, 0);
         } else {
+            // カメラモードの場合
             if (video.videoWidth === 0) return updateStatus("⌛ カメラ待機中...", "#fff3cd");
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
+            
+            // 【修正点】ビデオフレームをcanvasに描画（キャプチャ）
             context.drawImage(video, 0, 0);
+
+            // 【追加点】キャプチャした静止画をプレビュー領域に表示し、ビデオ映像を隠す
+            // canvasの内容をJPEG画像データURLとして取得し、imgタグのソースに設定
+            filePreview.src = canvas.toDataURL('image/jpeg');
+            video.style.display = "none";
+            filePreview.style.display = "block";
+
+            // 【追加点】状態をファイルモード（静止画モード）に変更
+            isFileMode = true;
+            document.getElementById('main-action-btn').innerText = "🔍 この画像を再解析";
+
+            // 【追加点】カメラストリームを停止してリソースを開放
+            if (videoStream) {
+                videoStream.getTracks().forEach(track => track.stop());
+                videoStream = null;
+            }
+            // ライトも消灯状態に戻す
+            isTorchOn = false;
+            document.getElementById('torch-btn').innerText = "🔦 ライトON";
         }
 
         const base64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+        
+        updateStatus("⌛ AI解析を実行中...", "#e2e3e5");
+
         const prompt = `プロの文書解析者として、提供された画像から以下の2点を出力してください。
 
 1. 【再現内容】
@@ -175,8 +213,7 @@
 構造化された形式で直接回答を開始すること。`;
 
         try {
-            // gemini-2.5-flash (安定版) を使用
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`, {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ contents: [{ parts: [{ text: prompt }, { inline_data: { mime_type: "image/jpeg", data: base64 } }] }] })
@@ -202,7 +239,6 @@
 
         const fileName = `AI_Vision_${new Date().getTime()}.txt`;
 
-        // PCブラウザ用 (File System Access API)
         if ('showSaveFilePicker' in window) {
             try {
                 const handle = await window.showSaveFilePicker({
@@ -215,7 +251,6 @@
                 updateStatus("✅ 保存しました", "#d4edda");
             } catch (err) { console.log("キャンセルされました"); }
         } else {
-            // スマホ用 (通常のダウンロード。保存先でDriveを選択可能)
             const blob = new Blob([content], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
