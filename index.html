@@ -3,74 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI Vision Pro</title>
+    <title>AI Vision Pro v3</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
-        :root { --primary: #4285f4; --success: #34a853; --danger: #ea4335; --dark: #202124; --secondary: #6c757d; --bg: #f8f9fa; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 10px; color: var(--dark); line-height: 1.5; }
+        :root { --primary: #4285f4; --success: #34a853; --danger: #ea4335; --dark: #202124; --bg: #f8f9fa; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 10px; color: var(--dark); }
         .container { max-width: 500px; margin: auto; background: white; padding: 15px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        
-        /* 設定 */
         .settings { text-align: left; background: #f1f3f4; padding: 12px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #dadce0; font-size: 13px; }
         input[type="password"] { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-
-        /* カメラ */
         .video-wrapper { position: relative; width: 100%; border-radius: 16px; overflow: hidden; background: #000; aspect-ratio: 3/4; margin-bottom: 12px; }
         video { width: 100%; height: 100%; object-fit: cover; }
-        
-        /* ボタン群 */
         .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
         button { padding: 15px; font-size: 16px; cursor: pointer; border: none; border-radius: 14px; font-weight: bold; color: white; transition: 0.3s; }
-        button:active { transform: scale(0.95); opacity: 0.9; }
-        
         .btn-capture { background: var(--primary); grid-column: span 2; border-radius: 30px; }
         .btn-torch { background: #f4b400; color: #000; }
         .btn-speak { background: var(--success); }
         .btn-stop { background: var(--danger); grid-column: span 2; display: none; margin-top: 5px; }
-
-        #status { font-size: 12px; padding: 10px; border-radius: 10px; margin-bottom: 10px; font-weight: bold; background: #fff3cd; text-align: center; min-height: 1.2em; }
-
-        /* 結果ボックス（相対配置） */
-        .result-box { 
-            position: relative; 
-            text-align: left; 
-            background: #fff; 
-            border: 2px solid #f0f0f0; 
-            border-radius: 16px; 
-            padding: 20px 15px 15px 15px; 
-            min-height: 180px; 
-            margin-top: 10px;
-        }
-        
-        /* フローティング・コピーボタン */
-        .floating-copy {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            width: 40px;
-            height: 40px;
-            background: #f8f9fa;
-            border: 1px solid #eee;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 18px;
-            transition: 0.3s;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            z-index: 10;
-        }
-        .floating-copy:hover { background: #eee; transform: translateY(-2px); }
+        #status { font-size: 12px; padding: 10px; border-radius: 10px; margin-bottom: 10px; font-weight: bold; background: #fff3cd; text-align: center; min-height: 1.2em; word-break: break-all; }
+        .result-box { position: relative; text-align: left; background: #fff; border: 2px solid #f0f0f0; border-radius: 16px; padding: 20px 15px 15px; min-height: 180px; }
+        .floating-copy { position: absolute; top: 10px; right: 10px; width: 40px; height: 40px; background: #f8f9fa; border: 1px solid #eee; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; transition: 0.3s; z-index: 10; }
         .floating-copy.success { background: var(--success); color: white; border-color: var(--success); }
-
-        #markdown-view { font-size: 14px; color: #333; }
+        #markdown-view { font-size: 14px; }
         #markdown-view table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 12px; }
         #markdown-view th, #markdown-view td { border: 1px solid #ddd; padding: 8px; }
-        #markdown-view th { background: #f8f9fa; }
-
-        .history-section { margin-top: 25px; border-top: 1px solid #eee; padding-top: 15px; text-align: left; }
-        .history-item { padding: 12px; border-bottom: 1px solid #f8f8f8; font-size: 12px; cursor: pointer; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .history-item { padding: 12px; border-bottom: 1px solid #f8f8f8; font-size: 11px; cursor: pointer; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     </style>
 </head>
 <body>
@@ -78,7 +34,7 @@
 <div class="container">
     <h3 style="margin: 0 0 15px 0; color:var(--primary); text-align:center;">🤖 AI Vision Pro</h3>
 
-    <div id="status">カメラ準備中...</div>
+    <div id="status">準備中...</div>
 
     <details class="settings">
         <summary>⚙️ APIキー設定</summary>
@@ -97,18 +53,17 @@
         <button class="btn-torch" id="torch-btn" onclick="toggleTorch()">🔦 ライト</button>
         <button class="btn-speak" id="speak-btn" onclick="speakText()">🔊 読み上げ</button>
     </div>
-    <button class="btn-stop" id="stop-btn" onclick="stopAudio()">⏹ 読み上げを停止</button>
+    <button class="btn-stop" id="stop-btn" onclick="stopAudio()">⏹ 停止</button>
 
     <div class="result-box">
-        <div id="copy-icon" class="floating-copy" onclick="copyToClipboard()" title="コピー">📋</div>
-        
+        <div id="copy-icon" class="floating-copy" onclick="copyToClipboard()">📋</div>
         <div id="markdown-view">ここに結果が表示されます</div>
         <textarea id="raw-text" style="display:none;"></textarea>
         <textarea id="clean-text" style="display:none;"></textarea>
     </div>
 
-    <div class="history-section">
-        <strong>📜 最近の履歴</strong>
+    <div style="margin-top:20px; text-align: left;">
+        <strong>📜 履歴</strong>
         <div id="historyList"></div>
     </div>
 </div>
@@ -135,12 +90,16 @@
     };
 
     async function setupCamera() {
+        if (!navigator.mediaDevices) {
+            updateStatus("❌ エラー: ブラウザがカメラに対応していません", "#f8d7da");
+            return;
+        }
         try {
             videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
             video.srcObject = videoStream;
             updateStatus("✅ カメラ準備完了", "#d4edda");
         } catch (err) {
-            updateStatus("❌ カメラエラー", "#f8d7da");
+            updateStatus("❌ カメラ起動失敗: 許可を確認してください", "#f8d7da");
         }
     }
 
@@ -148,7 +107,7 @@
         if (!videoStream) return;
         const track = videoStream.getVideoTracks()[0];
         const caps = track.getCapabilities ? track.getCapabilities() : {};
-        if (!caps.torch) return alert("ライト制御非対応端末です");
+        if (!caps.torch) return alert("ライト制御に対応していません");
         isTorchOn = !isTorchOn;
         await track.applyConstraints({ advanced: [{ torch: isTorchOn }] });
         document.getElementById('torch-btn').innerText = isTorchOn ? "🔦 ライトOFF" : "🔦 ライトON";
@@ -162,27 +121,37 @@
     }
 
     async function captureAndAnalyze() {
-        const key = document.getElementById('gemini-key').value;
-        if (!key) return alert("キーを設定してください");
-        if (video.videoWidth === 0) return updateStatus("⌛ カメラ待機中...", "#fff3cd");
+        const key = document.getElementById('gemini-key').value.trim();
+        if (!key) return alert("Gemini APIキーを入力してください");
+        if (video.videoWidth === 0) return updateStatus("⌛ カメラ準備中...", "#fff3cd");
 
-        updateStatus("⌛ AI文書解析中...", "#e2e3e5");
-        const context = canvas.getContext('2d');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        context.drawImage(video, 0, 0);
-        const base64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
-
-        const prompt = `プロの解析エキスパートとして回答。 1. 全テキスト抽出 2. 表はMarkdown形式 3. 図解は構造を詳しく解説 4. 見出し(#)で構造化 5. 日本語のみ、前置き不要。`;
-
+        updateStatus("⌛ AI解析中...", "#e2e3e5");
+        
         try {
+            const context = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0);
+            const base64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+
+            const prompt = "プロの文書解析者として回答。1.全テキスト抽出 2.表はMarkdown 3.図解は文章で解説 4.構造化 5.日本語のみ、前置き不要。";
+
             const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ contents: [{ parts: [{ text: prompt }, { inline_data: { mime_type: "image/jpeg", data: base64 } }] }] })
             });
+
             const data = await response.json();
-            const result = data.candidates[0]?.content?.parts?.[0]?.text || "解析失敗";
+
+            if (data.error) {
+                throw new Error(`APIエラー: ${data.error.message}`);
+            }
+
+            const result = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (!result) {
+                throw new Error("AIからの返答が空でした。別の画像を試してください。");
+            }
 
             markdownView.innerHTML = marked.parse(result);
             rawText.value = result;
@@ -191,27 +160,24 @@
             updateStatus("✅ 解析完了", "#d4edda");
             saveHistory(result);
         } catch (e) {
-            updateStatus("❌ 解析エラー", "#f8d7da");
+            updateStatus(`❌ エラー: ${e.message}`, "#f8d7da");
+            console.error(e);
         }
     }
 
-    // --- フローティング・コピー機能 ---
     function copyToClipboard() {
         if (!rawText.value) return;
         navigator.clipboard.writeText(rawText.value).then(() => {
             copyIcon.innerText = "✅";
             copyIcon.classList.add("success");
-            setTimeout(() => { 
-                copyIcon.innerText = "📋"; 
-                copyIcon.classList.remove("success");
-            }, 2000);
+            setTimeout(() => { copyIcon.innerText = "📋"; copyIcon.classList.remove("success"); }, 2000);
             updateStatus("📋 コピーしました", "#d1ecf1");
         });
     }
 
     async function speakText() {
-        const key = document.getElementById('openai-key').value;
-        if (!key || !cleanText.value) return alert("設定不足です");
+        const key = document.getElementById('openai-key').value.trim();
+        if (!key || !cleanText.value) return alert("キーまたは内容がありません");
 
         updateStatus("⌛ 音声生成中...", "#e2e3e5");
         try {
@@ -220,15 +186,16 @@
                 headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify({ model: "tts-1", input: cleanText.value.substring(0, 4000), voice: "shimmer" })
             });
+            if (!response.ok) throw new Error("OpenAI APIキーが正しくない可能性があります");
             const blob = await response.blob();
             if (audioInstance) audioInstance.pause();
             audioInstance = new Audio(URL.createObjectURL(blob));
             audioInstance.play();
             updateStatus("▶ 読み上げ中...", "#d1ecf1");
             document.getElementById('stop-btn').style.display = "block";
-            audioInstance.onended = () => { document.getElementById('stop-btn').style.display = "none"; updateStatus("✅ 再生終了", "#d4edda"); };
+            audioInstance.onended = () => { document.getElementById('stop-btn').style.display = "none"; updateStatus("✅ 終了", "#d4edda"); };
         } catch (e) {
-            updateStatus("❌ 読み上げエラー", "#f8d7da");
+            updateStatus(`❌ 読み上げエラー: ${e.message}`, "#f8d7da");
         }
     }
 
@@ -242,10 +209,7 @@
     }
     function loadHistory() {
         const h = JSON.parse(localStorage.getItem('app_history') || '[]');
-        historyList.innerHTML = h.map(item => `
-            <div class="history-item" onclick="restoreHistory('${item.content.replace(/'/g, "\\'").replace(/\n/g, "\\n")}')">
-                🕒 ${item.time}: ${item.content.substring(0, 40)}...
-            </div>`).join('');
+        historyList.innerHTML = h.map(item => `<div class="history-item" onclick="restoreHistory('${item.content.replace(/'/g, "\\'").replace(/\n/g, "\\n")}')">🕒 ${item.time}: ${item.content.substring(0, 40)}...</div>`).join('');
     }
     function restoreHistory(c) {
         markdownView.innerHTML = marked.parse(c);
