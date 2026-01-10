@@ -6,37 +6,42 @@
     <title>AI Vision Pro</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
-        :root { --primary: #4285f4; --success: #34a853; --danger: #ea4335; --dark: #202124; }
-        body { font-family: -apple-system, sans-serif; background: #f8f9fa; margin: 0; padding: 10px; color: var(--dark); }
-        .container { max-width: 500px; margin: auto; background: white; padding: 15px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        :root { --primary: #4285f4; --success: #34a853; --danger: #ea4335; --dark: #202124; --bg: #f8f9fa; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 10px; color: var(--dark); line-height: 1.5; }
+        .container { max-width: 500px; margin: auto; background: white; padding: 15px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
         
         /* 設定エリア */
         .settings { text-align: left; background: #f1f3f4; padding: 12px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #dadce0; font-size: 13px; }
-        input[type="password"] { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 8px; }
+        input[type="password"] { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
 
-        /* カメラエリア */
+        /* カメラ表示 */
         .video-wrapper { position: relative; width: 100%; border-radius: 12px; overflow: hidden; background: #000; aspect-ratio: 3/4; margin-bottom: 10px; }
         video { width: 100%; height: 100%; object-fit: cover; }
         
-        /* ボタン類 */
-        .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+        /* 操作ボタン */
+        .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
         button { padding: 15px; font-size: 16px; cursor: pointer; border: none; border-radius: 12px; font-weight: bold; color: white; transition: 0.2s; }
-        button:active { transform: scale(0.95); }
-        .btn-capture { background: var(--primary); grid-column: span 2; border-radius: 30px; }
+        button:active { transform: scale(0.96); opacity: 0.8; }
+        .btn-capture { background: var(--primary); grid-column: span 2; border-radius: 30px; font-size: 18px; }
         .btn-torch { background: #f4b400; color: #000; }
         .btn-speak { background: var(--success); }
-        .btn-stop { background: var(--danger); }
+        .btn-stop { background: var(--danger); grid-column: span 2; display: none; }
 
-        /* 解析結果表示（Markdown対応） */
-        #status { font-size: 12px; padding: 8px; border-radius: 8px; margin-bottom: 10px; font-weight: bold; background: #fff3cd; }
-        .result-container { text-align: left; background: #fff; border: 2px solid #eee; border-radius: 12px; padding: 15px; min-height: 100px; }
+        /* ステータスと結果 */
+        #status { font-size: 12px; padding: 10px; border-radius: 8px; margin-bottom: 10px; font-weight: bold; background: #fff3cd; min-height: 1.2em; transition: 0.3s; }
+        .result-box { text-align: left; background: #fff; border: 2px solid #eee; border-radius: 12px; padding: 15px; min-height: 150px; }
         
-        /* Markdown表示用のスタイル */
-        #markdown-view { font-size: 14px; line-height: 1.6; overflow-x: auto; }
-        #markdown-view table { border-collapse: collapse; width: 100%; margin: 10px 0; }
-        #markdown-view th, #markdown-view td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        /* Markdown表示スタイル */
+        #markdown-view { font-size: 14px; overflow-x: auto; }
+        #markdown-view table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 13px; }
+        #markdown-view th, #markdown-view td { border: 1px solid #ddd; padding: 8px; }
         #markdown-view th { background: #f8f9fa; }
-        #markdown-view h1, #markdown-view h2 { font-size: 18px; border-bottom: 1px solid #eee; }
+        #markdown-view h1, #markdown-view h2 { font-size: 1.2em; border-bottom: 1px solid #eee; margin-top: 1em; }
+        #markdown-view img { max-width: 100%; }
+
+        /* 履歴表示 */
+        .history-section { margin-top: 25px; border-top: 1px solid #eee; padding-top: 15px; text-align: left; }
+        .history-item { padding: 10px; border-bottom: 1px solid #f0f0f0; font-size: 12px; cursor: pointer; color: #555; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     </style>
 </head>
 <body>
@@ -44,13 +49,13 @@
 <div class="container">
     <h3 style="margin-top:0; color:var(--primary); text-align:center;">🤖 AI Vision Pro</h3>
 
-    <div id="status">カメラ準備中...</div>
+    <div id="status">カメラを起動しています...</div>
 
     <details class="settings">
         <summary>⚙️ APIキー設定</summary>
         <input type="password" id="gemini-key" placeholder="Gemini API Key">
         <input type="password" id="openai-key" placeholder="OpenAI API Key">
-        <button onclick="saveKeys()" style="background:var(--dark); width:100%; margin-top:5px;">保存</button>
+        <button onclick="saveKeys()" style="background:var(--dark); width:100%; margin-top:8px;">設定を保存</button>
     </details>
 
     <div class="video-wrapper">
@@ -62,19 +67,21 @@
         <button class="btn-capture" onclick="captureAndAnalyze()">📸 写真を撮って解析</button>
         <button class="btn-torch" id="torch-btn" onclick="toggleTorch()">🔦 ライト点灯</button>
         <button class="btn-speak" id="speak-btn" onclick="speakText()">🔊 読み上げ</button>
+        <button class="btn-stop" id="stop-btn" onclick="stopAudio()">⏹ 停止</button>
     </div>
-    <button class="btn-stop" id="stop-btn" onclick="stopAudio()" style="display:none; width:100%;">⏹ 停止</button>
 
-    <div class="result-container">
+    <div class="result-box">
         <div id="markdown-view">ここに解析結果が表示されます</div>
         <textarea id="hidden-text" style="display:none;"></textarea>
     </div>
 
-    <div style="margin-top:20px; text-align: left;">
-        <strong>📜 履歴</strong>
+    <div class="history-section">
+        <strong>📜 履歴（最近5件）</strong>
         <div id="historyList"></div>
     </div>
 </div>
+
+
 
 <script>
     const video = document.getElementById('video');
@@ -82,68 +89,95 @@
     const markdownView = document.getElementById('markdown-view');
     const hiddenText = document.getElementById('hidden-text');
     const status = document.getElementById('status');
+    const historyList = document.getElementById('historyList');
+    
     let audioInstance = null;
     let isTorchOn = false;
     let videoStream = null;
 
+    // 起動時の処理
     window.onload = () => {
         document.getElementById('gemini-key').value = localStorage.getItem('gemini_api_key') || "";
         document.getElementById('openai-key').value = localStorage.getItem('openai_api_key') || "";
         setupCamera();
+        loadHistory();
     };
 
-    // --- カメラセットアップ ---
+    // --- カメラセットアップ (Android/HTTPS対応) ---
     async function setupCamera() {
+        if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+            updateStatus("❌ エラー: HTTPS環境で開いてください。", "red");
+            return;
+        }
+
         try {
-            const constraints = { video: { facingMode: "environment" } };
-            videoStream = await navigator.mediaDevices.getUserMedia(constraints);
+            videoStream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: "environment" },
+                audio: false
+            });
             video.srcObject = videoStream;
-            status.innerText = "✅ カメラ準備完了";
-            status.style.background = "#d4edda";
+            updateStatus("✅ カメラ準備完了", "#d4edda", "#155724");
         } catch (err) {
-            status.innerText = "❌ カメラエラー: HTTPS環境か確認してください。";
+            updateStatus("❌ カメラエラー: 許可を確認してください。", "#f8d7da", "#721c24");
         }
     }
 
-    // --- ライト点灯機能（Android/Chrome対応） ---
+    // --- ライト機能 (安全装置付き) ---
     async function toggleTorch() {
+        if (!videoStream) return;
         const track = videoStream.getVideoTracks()[0];
-        const caps = track.getCapabilities();
-        if (!caps.torch) return alert("この端末はライト制御に対応していません。");
         
-        isTorchOn = !isTorchOn;
-        await track.applyConstraints({ advanced: [{ torch: isTorchOn }] });
-        document.getElementById('torch-btn').innerText = isTorchOn ? "🔦 ライト消灯" : "🔦 ライト点灯";
+        // ライト対応チェック
+        const caps = track.getCapabilities ? track.getCapabilities() : {};
+        if (!caps.torch) {
+            alert("この端末はライト制御に対応していません。");
+            return;
+        }
+        
+        try {
+            isTorchOn = !isTorchOn;
+            await track.applyConstraints({ advanced: [{ torch: isTorchOn }] });
+            document.getElementById('torch-btn').innerText = isTorchOn ? "🔦 ライト消灯" : "🔦 ライト点灯";
+        } catch (e) {
+            console.error(e);
+        }
     }
 
     function saveKeys() {
         localStorage.setItem('gemini_api_key', document.getElementById('gemini-key').value);
         localStorage.setItem('openai_api_key', document.getElementById('openai-key').value);
         alert("保存しました。");
+        location.reload();
     }
 
-    // --- メイン解析処理 ---
+    // --- メイン解析処理 (エラー防止強化版) ---
     async function captureAndAnalyze() {
-        const key = document.getElementById('gemini-key').value;
-        if (!key) return alert("Geminiキーを設定してください。");
+        const geminiKey = document.getElementById('gemini-key').value;
+        if (!geminiKey) return alert("Gemini APIキーを入力してください。");
 
-        status.innerText = "⌛ 文書を解析中...";
+        // 映像チェック
+        if (!video || video.videoWidth === 0) {
+            updateStatus("⌛ 映像を待機中... もう一度押してください", "#fff3cd");
+            return;
+        }
+
+        updateStatus("⌛ AIが画像を解析中...", "#e2e3e5");
+        
         const context = canvas.getContext('2d');
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         context.drawImage(video, 0, 0);
-        const base64Image = canvas.toDataURL('image/jpeg', 0.9).split(',')[1];
+        const base64Image = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
 
-        // 究極のプロンプト
         const prompt = `あなたはプロの文書解析・OCRエキスパートです。画像の内容を以下のルールで正確にデジタル化してください。
         1. **文字認識**: 全てのテキストを正確に抽出してください。
         2. **表（テーブル）**: 表が含まれている場合は、必ずMarkdown形式の表に変換してください。
-        3. **図解・イラスト**: フローチャートやグラフがある場合は、要素間の関係性を「【図の説明】」として詳しく解説してください。
-        4. **構造化**: 読みやすさを重視し、見出し(#)や箇条書き(-)を使用して構造化してください。
-        5. **制約**: 日本語で出力し、前置きや結びの言葉は一切含めず、解析結果のみを出力してください。`;
+        3. **図解・イラスト**: フローチャートやグラフ、図がある場合は、それらが何を示しているか、要素間の関係性を「【図の説明】」として詳しく解説してください。
+        4. **構造化**: 見出し(#)や箇条書き(-)を使用して構造化してください。
+        5. **制約**: 日本語で出力し、解析結果のみを出力してください。前置きや結びの言葉は一切不要です。`;
 
         try {
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`, {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -153,46 +187,94 @@
                     ]}]
                 })
             });
+            
             const data = await response.json();
-            const resultText = data.candidates[0].content.parts[0].text;
 
-            // Markdownを描画
-            markdownView.innerHTML = marked.parse(resultText);
-            
-            // 読み上げ用に記号を掃除したテキストを作成
-            hiddenText.value = resultText.replace(/[|\\-]{2,}/g, ' ').replace(/[#*]/g, '');
-            
-            status.innerText = "✅ 解析完了（表・図解対応）";
-            status.style.background = "#d4edda";
+            // 安全なデータ取得
+            if (data && data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
+                const resultText = data.candidates[0].content.parts[0].text;
+                
+                // Markdown描画
+                markdownView.innerHTML = marked.parse(resultText);
+                // 読み上げ用（記号を除去）
+                hiddenText.value = resultText.replace(/[|\\-]{2,}/g, ' ').replace(/[#*]/g, '');
+                
+                updateStatus("✅ 解析完了", "#d4edda", "#155724");
+                saveHistory(resultText);
+            } else {
+                throw new Error(data.error?.message || "AIの返答が空でした。APIキーを確認してください。");
+            }
         } catch (e) {
-            status.innerText = "❌ 解析失敗: " + e.message;
+            updateStatus("❌ エラー: " + e.message, "#f8d7da", "#721c24");
         }
     }
 
     async function speakText() {
-        const key = document.getElementById('openai-key').value;
+        const openaiKey = document.getElementById('openai-key').value;
         const text = hiddenText.value;
-        if (!key || !text) return alert("設定または結果がありません。");
+        if (!openaiKey || !text) return alert("設定または解析結果がありません。");
 
-        status.innerText = "⌛ 音声生成中...";
+        updateStatus("⌛ 音声を生成中...", "#e2e3e5");
         try {
             const response = await fetch('https://api.openai.com/v1/audio/speech', {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+                headers: { 'Authorization': `Bearer ${openaiKey}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify({ model: "tts-1", input: text.substring(0, 4000), voice: "shimmer" })
             });
+            
+            if (!response.ok) throw new Error("OpenAI APIエラー");
+
             const blob = await response.blob();
             if (audioInstance) audioInstance.pause();
             audioInstance = new Audio(URL.createObjectURL(blob));
             audioInstance.play();
+            
+            updateStatus("▶ 再生中...", "#d1ecf1", "#0c5460");
             document.getElementById('stop-btn').style.display = "block";
+            audioInstance.onended = () => {
+                document.getElementById('stop-btn').style.display = "none";
+                updateStatus("✅ 再生終了", "#d4edda");
+            };
         } catch (e) {
-            status.innerText = "❌ 読み上げエラー";
+            updateStatus("❌ 読み上げエラー: " + e.message, "#f8d7da");
         }
     }
 
     function stopAudio() {
-        if (audioInstance) { audioInstance.pause(); document.getElementById('stop-btn').style.display = "none"; }
+        if (audioInstance) {
+            audioInstance.pause();
+            document.getElementById('stop-btn').style.display = "none";
+            updateStatus("⏹ 停止しました", "#eee");
+        }
+    }
+
+    // --- 補助機能 ---
+    function updateStatus(msg, bg, color = "#856404") {
+        status.innerText = msg;
+        status.style.background = bg;
+        status.style.color = color;
+    }
+
+    function saveHistory(content) {
+        let history = JSON.parse(localStorage.getItem('app_history') || '[]');
+        history.unshift({ content, time: new Date().toLocaleTimeString() });
+        localStorage.setItem('app_history', JSON.stringify(history.slice(0, 5)));
+        loadHistory();
+    }
+
+    function loadHistory() {
+        const history = JSON.parse(localStorage.getItem('app_history') || '[]');
+        historyList.innerHTML = history.map(h => `
+            <div class="history-item" onclick="restoreHistory('${h.content.replace(/'/g, "\\'").replace(/\n/g, "\\n")}')">
+                🕒 ${h.time}: ${h.content.substring(0, 40)}...
+            </div>
+        `).join('');
+    }
+
+    function restoreHistory(content) {
+        markdownView.innerHTML = marked.parse(content);
+        hiddenText.value = content.replace(/[|\\-]{2,}/g, ' ').replace(/[#*]/g, '');
+        updateStatus("📜 履歴から復元しました", "#d1ecf1");
     }
 </script>
 </body>
