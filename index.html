@@ -3,159 +3,142 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI Vision Pro | Next Gen OCR</title>
+    <title>AI Vision Pro | Expert Analyzer</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary: #6366f1;
-            --primary-hover: #4f46e5;
-            --bg: #f3f4f6;
-            --card-bg: rgba(255, 255, 255, 0.8);
-            --text-main: #1f2937;
-            --text-sub: #6b7280;
-            --border: rgba(209, 213, 219, 0.5);
-            --accent: #f59e0b;
-            --success: #10b981;
-            --danger: #ef4444;
+            --primary: #4f46e5;
+            --primary-light: #818cf8;
+            --bg: #f8fafc;
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --text-main: #0f172a;
+            --text-sub: #475569;
+            --border: rgba(226, 232, 240, 0.8);
             --glass: rgba(255, 255, 255, 0.7);
-            --blur: blur(12px);
+            --blur: blur(16px);
         }
 
         body.dark-mode {
-            --bg: #0f172a;
-            --card-bg: rgba(30, 41, 59, 0.8);
+            --bg: #020617;
+            --card-bg: rgba(15, 23, 42, 0.9);
             --text-main: #f1f5f9;
             --text-sub: #94a3b8;
-            --border: rgba(51, 65, 85, 0.5);
+            --border: rgba(30, 41, 59, 0.8);
             --glass: rgba(15, 23, 42, 0.7);
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body { 
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: 'Inter', -apple-system, sans-serif;
             background: var(--bg);
-            background-image: radial-gradient(circle at 0% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
-                              radial-gradient(circle at 100% 100%, rgba(168, 85, 247, 0.15) 0%, transparent 50%);
+            background-image: fixed;
+            background-image: radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.1) 0px, transparent 50%),
+                              radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.1) 0px, transparent 50%);
             margin: 0; 
-            padding: 20px 10px; 
+            padding: env(safe-area-inset-top) 15px 40px 15px; 
             color: var(--text-main); 
-            min-height: 100vh;
-            transition: background 0.4s ease;
+            transition: all 0.3s ease;
         }
 
         .container { 
-            max-width: 480px; 
+            max-width: 550px; 
             margin: auto; 
             background: var(--card-bg); 
             backdrop-filter: var(--blur);
             -webkit-backdrop-filter: var(--blur);
-            padding: 24px; 
+            padding: 28px; 
             border-radius: 32px; 
             border: 1px solid var(--border);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.1); 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1); 
         }
 
-        /* ヘッダー */
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .logo { font-size: 20px; font-weight: 800; background: linear-gradient(135deg, var(--primary), #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -0.5px; }
-        .btn-theme { background: var(--glass); border: 1px solid var(--border); border-radius: 12px; padding: 8px 12px; cursor: pointer; color: var(--text-main); font-size: 14px; transition: 0.2s; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .logo { font-size: 22px; font-weight: 900; letter-spacing: -1px; color: var(--primary); display: flex; align-items: center; gap: 10px; }
+        .btn-theme { background: var(--glass); border: 1px solid var(--border); border-radius: 50%; width: 40px; height: 40px; cursor: pointer; color: var(--text-main); display: flex; align-items: center; justify-content: center; transition: 0.3s; }
 
-        /* ステータス */
-        #status { font-size: 13px; padding: 10px; border-radius: 14px; margin-bottom: 15px; font-weight: 600; text-align: center; transition: 0.3s; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); }
+        #status { font-size: 13px; padding: 12px; border-radius: 16px; margin-bottom: 20px; font-weight: 600; text-align: center; border: 1px solid transparent; }
 
-        /* 設定 */
-        details.settings { background: var(--glass); border-radius: 16px; margin-bottom: 20px; border: 1px solid var(--border); overflow: hidden; }
-        summary { padding: 12px; cursor: pointer; font-size: 13px; font-weight: bold; color: var(--text-sub); }
-        .settings-content { padding: 0 12px 12px 12px; }
-        input[type="password"] { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); color: var(--text-main); font-size: 14px; margin-bottom: 8px; }
+        details.settings { background: var(--glass); border-radius: 20px; margin-bottom: 20px; border: 1px solid var(--border); transition: 0.3s; }
+        summary { padding: 14px; cursor: pointer; font-size: 14px; font-weight: bold; color: var(--text-sub); list-style: none; display: flex; align-items: center; gap: 8px; }
+        .settings-content { padding: 0 14px 14px 14px; }
+        input[type="password"] { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--bg); color: var(--text-main); outline: none; transition: 0.2s; }
+        input[type="password"]:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
 
-        /* プレビューエリア */
-        .preview-wrapper { position: relative; width: 100%; border-radius: 24px; overflow: hidden; background: #000; aspect-ratio: 4/5; margin-bottom: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
-        video, #file-preview { width: 100%; height: 100%; object-fit: cover; }
-        #file-preview { display: none; }
+        .preview-wrapper { position: relative; width: 100%; border-radius: 24px; overflow: hidden; background: #000; aspect-ratio: 3/4; margin-bottom: 24px; border: 4px solid var(--card-bg); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        video, #file-preview { width: 100%; height: 100%; object-fit: cover; transition: 0.3s; }
 
-        /* 操作ボタン */
         .controls { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-        button { border: none; border-radius: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; }
-        button:active { transform: scale(0.95); }
+        button { border: none; border-radius: 18px; font-weight: 700; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        button:active { transform: scale(0.96); }
 
-        .btn-capture { background: var(--primary); color: white; grid-column: span 2; height: 60px; font-size: 18px; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4); }
-        .btn-capture:hover { background: var(--primary-hover); }
+        .btn-capture { background: var(--primary); color: white; grid-column: span 2; height: 64px; font-size: 18px; box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3); }
+        .btn-capture:hover { background: var(--primary-light); }
         
-        .btn-torch { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
-        .dark-mode .btn-torch { background: #451a03; color: #fbbf24; border: none; }
+        .btn-sub { background: var(--glass); color: var(--text-main); border: 1px solid var(--border); height: 50px; font-size: 14px; }
+        .btn-save { background: #10b981; color: white; grid-column: span 2; height: 50px; margin-top: 8px; }
 
-        .btn-file { background: #f3e8ff; color: #6b21a8; border: 1px solid #e9d5ff; }
-        .dark-mode .btn-file { background: #2e1065; color: #c084fc; border: none; }
-
-        .btn-copy { background: #f1f5f9; color: #475569; }
-        .dark-mode .btn-copy { background: #334155; color: #cbd5e1; }
-
-        .btn-save { background: var(--success); color: white; grid-column: span 2; height: 50px; margin-top: 5px; }
-
-        /* 解析結果 */
         .result-box { 
             position: relative; 
-            background: var(--glass); 
+            background: var(--card-bg); 
             border: 1px solid var(--border); 
             border-radius: 24px; 
-            padding: 20px; 
-            min-height: 150px; 
-            margin-top: 20px;
-            overflow: hidden;
+            padding: 24px; 
+            min-height: 200px; 
+            margin-top: 24px;
         }
         .floating-copy { 
-            position: absolute; top: 12px; right: 12px; width: 40px; height: 40px; 
-            background: var(--primary); border-radius: 12px; display: flex; align-items: center; justify-content: center; 
-            cursor: pointer; color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); z-index: 10;
+            position: absolute; top: 15px; right: 15px; width: 44px; height: 44px; 
+            background: var(--primary); border-radius: 14px; display: flex; align-items: center; justify-content: center; 
+            cursor: pointer; color: white; z-index: 10;
         }
 
-        #markdown-view { font-size: 15px; color: var(--text-main); line-height: 1.7; }
-        #markdown-view table { width: 100%; border-collapse: collapse; margin: 15px 0; border-radius: 8px; overflow: hidden; }
-        #markdown-view th { background: var(--primary); color: white; padding: 10px; font-size: 12px; }
-        #markdown-view td { border-bottom: 1px solid var(--border); padding: 10px; font-size: 13px; }
+        #markdown-view { font-size: 15px; color: var(--text-main); line-height: 1.8; }
+        #markdown-view h1, #markdown-view h2, #markdown-view h3 { color: var(--primary); border-bottom: 2px solid var(--border); padding-bottom: 8px; margin-top: 24px; }
+        #markdown-view table { width: 100%; border-collapse: collapse; margin: 15px 0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        #markdown-view th { background: var(--primary); color: white; padding: 12px; text-align: left; }
+        #markdown-view td { background: var(--glass); border-bottom: 1px solid var(--border); padding: 12px; }
 
-        /* 履歴 */
-        .history-section { margin-top: 30px; }
-        .history-title { font-size: 14px; font-weight: 800; color: var(--text-sub); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        .history-section { margin-top: 32px; border-top: 2px dashed var(--border); padding-top: 20px; }
+        .history-title { font-size: 15px; font-weight: 800; color: var(--text-sub); margin-bottom: 12px; }
         .history-item { 
-            padding: 14px; border-radius: 16px; margin-bottom: 8px; 
-            font-size: 12px; cursor: pointer; color: var(--text-main); 
+            padding: 15px; border-radius: 18px; margin-bottom: 10px; 
+            font-size: 13px; cursor: pointer; color: var(--text-main); 
             background: var(--glass); border: 1px solid var(--border);
             display: flex; justify-content: space-between; align-items: center;
-            transition: 0.2s;
         }
-        .history-item:hover { transform: translateX(5px); background: white; }
-        .dark-mode .history-item:hover { background: #2d3748; }
 
-        /* アニメーション */
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
-        .analyzing { animation: pulse 1.5s infinite; }
+        @keyframes scan {
+            0% { top: 0%; }
+            100% { top: 100%; }
+        }
+        .scanning::after {
+            content: ""; position: absolute; left: 0; width: 100%; height: 4px;
+            background: var(--primary-light); box-shadow: 0 0 15px var(--primary);
+            animation: scan 2s linear infinite; z-index: 5;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header">
-        <div class="logo"><i class="fas fa-eye"></i> AI Vision Pro</div>
-        <button class="btn-theme" onclick="toggleTheme()" id="theme-toggle-btn">
-            <i class="fas fa-moon"></i>
-        </button>
+        <div class="logo"><i class="fas fa-microchip"></i> AI Vision Pro</div>
+        <button class="btn-theme" onclick="toggleTheme()" id="theme-btn"><i class="fas fa-moon"></i></button>
     </div>
 
-    <div id="status" style="background: #e0f2fe; color: #0369a1;">システム準備完了</div>
+    <div id="status" style="background: #eff6ff; color: #1e40af;">Ready to scan</div>
 
     <details class="settings">
-        <summary><i class="fas fa-key"></i> Gemini API設定</summary>
+        <summary><i class="fas fa-cog"></i> API Key Setup</summary>
         <div class="settings-content">
-            <input type="password" id="gemini-key" placeholder="ここにAPIキーを入力">
-            <button onclick="saveKeys()" style="background:var(--text-main); color:var(--bg); width:100%; padding:10px; border-radius:10px; font-size:12px;">設定を保存</button>
+            <input type="password" id="gemini-key" placeholder="Enter Gemini API Key">
+            <button onclick="saveKeys()" style="margin-top:10px; background:var(--primary); color:white; width:100%; padding:10px; border-radius:10px;">Save Key</button>
         </div>
     </details>
 
-    <div class="preview-wrapper">
+    <div class="preview-wrapper" id="preview-box">
         <video id="video" autoplay playsinline muted></video>
         <img id="file-preview">
     </div>
@@ -163,33 +146,31 @@
 
     <div class="controls">
         <button class="btn-capture" id="main-btn" onclick="captureAndAnalyze()">
-            <i class="fas fa-bolt"></i> 解析を開始
+            <i class="fas fa-expand"></i> 抽出と図解解析を開始
         </button>
-        <button class="btn-torch" id="torch-btn" onclick="toggleTorch()">
-            <i class="fas fa-lightbulb"></i> ライト ON
+        <button class="btn-sub" onclick="toggleTorch()">
+            <i class="fas fa-lightbulb"></i> ライト切替
         </button>
-        <button class="btn-file" onclick="document.getElementById('image-input').click()">
-            <i class="fas fa-image"></i> 画像を選択
+        <button class="btn-sub" onclick="document.getElementById('image-input').click()">
+            <i class="fas fa-file-import"></i> 画像読込
         </button>
         <input type="file" id="image-input" accept="image/*" style="display:none;" onchange="handleFileSelect(event)">
-        <button class="btn-copy" onclick="copyToClipboard()">
-            <i class="fas fa-copy"></i> コピー
+        <button class="btn-sub" onclick="copyToClipboard()">
+            <i class="fas fa-copy"></i> 全体コピー
         </button>
         <button class="btn-save" onclick="saveAsFile()">
-            <i class="fas fa-file-download"></i> テキスト出力 (.txt)
+            <i class="fas fa-download"></i> 解析結果を保存 (.txt)
         </button>
     </div>
 
     <div class="result-box">
-        <div class="floating-copy" onclick="copyToClipboard()" title="結果をコピー">
-            <i class="fas fa-clone"></i>
-        </div>
+        <div class="floating-copy" onclick="copyToClipboard()"><i class="fas fa-paste"></i></div>
         <div id="markdown-view">ここに解析結果が表示されます</div>
         <textarea id="raw-text" style="display:none;"></textarea>
     </div>
 
     <div class="history-section">
-        <div class="history-title"><i class="fas fa-history"></i> 最近の履歴</div>
+        <div class="history-title"><i class="fas fa-history"></i> Recent History</div>
         <div id="historyList"></div>
     </div>
 </div>
@@ -201,39 +182,35 @@
     const markdownView = document.getElementById('markdown-view');
     const rawText = document.getElementById('raw-text');
     const status = document.getElementById('status');
-    const historyList = document.getElementById('historyList');
+    const previewBox = document.getElementById('preview-box');
 
     let videoStream = null;
     let isFileMode = false;
     let isTorchOn = false;
-    let currentHistory = [];
 
     window.onload = () => {
-        const savedKey = localStorage.getItem('gemini_api_key');
-        if(savedKey) document.getElementById('gemini-key').value = savedKey;
-        
-        if(localStorage.getItem('dark_mode') === 'true') {
-            document.body.classList.add('dark-mode');
-            document.getElementById('theme-toggle-btn').innerHTML = '<i class="fas fa-sun"></i>';
-        }
-        
+        const key = localStorage.getItem('gemini_api_key');
+        if(key) document.getElementById('gemini-key').value = key;
+        if(localStorage.getItem('dark_mode') === 'true') toggleTheme(true);
         setupCamera();
         loadHistory();
     };
 
-    function toggleTheme() {
-        const isDark = document.body.classList.toggle('dark-mode');
+    function toggleTheme(init = false) {
+        const body = document.body;
+        const isDark = init ? localStorage.getItem('dark_mode') === 'true' : body.classList.toggle('dark-mode');
+        if(init && isDark) body.classList.add('dark-mode');
         localStorage.setItem('dark_mode', isDark);
-        document.getElementById('theme-toggle-btn').innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+        document.getElementById('theme-btn').innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
     }
 
     async function setupCamera() {
         try {
             videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
             video.srcObject = videoStream;
-            updateStatus("✅ システム待機中", "#dcfce7", "#166534");
+            updateStatus("✅ Camera Ready", "#dcfce7", "#166534");
         } catch (err) {
-            updateStatus("⚠️ カメラ無効 (画像のみ可)", "#fee2e2", "#991b1b");
+            updateStatus("⚠️ Camera Restricted", "#fee2e2", "#991b1b");
         }
     }
 
@@ -246,30 +223,28 @@
             filePreview.style.display = "block";
             video.style.display = "none";
             isFileMode = true;
-            updateStatus("📁 画像読み込み完了", "#fef9c3", "#854d0e");
+            updateStatus("📁 File Loaded", "#fef9c3", "#854d0e");
         };
         reader.readAsDataURL(file);
     }
 
     async function toggleTorch() {
-        if (!videoStream || isFileMode) return alert("カメラモード時のみ有効です");
+        if (!videoStream || isFileMode) return alert("Torch only works in Camera Mode");
         const track = videoStream.getVideoTracks()[0];
         try {
             isTorchOn = !isTorchOn;
             await track.applyConstraints({ advanced: [{ torch: isTorchOn }] });
-            document.getElementById('torch-btn').innerHTML = isTorchOn ? '<i class="fas fa-lightbulb"></i> ライト OFF' : '<i class="fas fa-lightbulb"></i> ライト ON';
-        } catch (e) { alert("このデバイスはライト制御に対応していません"); }
+        } catch (e) { alert("Torch not supported on this device"); }
     }
 
     async function captureAndAnalyze() {
         const key = document.getElementById('gemini-key').value.trim();
-        if (!key) return alert("APIキーを設定から入力してください");
+        if (!key) return alert("Please set API Key first");
 
-        updateStatus("⌛ 解析中...", "#e0f2fe", "#0369a1");
-        status.classList.add('analyzing');
+        updateStatus("🚀 Analyzing Image...", "#eff6ff", "#1e40af");
+        previewBox.classList.add('scanning');
         
         const context = canvas.getContext('2d');
-
         if (isFileMode) {
             canvas.width = filePreview.naturalWidth;
             canvas.height = filePreview.naturalHeight;
@@ -281,85 +256,94 @@
         }
 
         const base64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
-        const prompt = "画像内のテキスト抽出、表のMarkdown化、図解の解説を出力してください。注意：回答に '\\n' という文字列（バックスラッシュとn）を含めないでください。改行したい場合は実際の改行を行ってください。";
+
+        // --- 強化されたプロンプト ---
+        const customPrompt = `画像の内容を以下の3つのセクションで出力してください。
+
+1. 【テキスト抽出・表のMarkdown化】
+画像内に記載されているすべての文字を、構造を維持して書き出してください。表がある場合は必ずMarkdown形式に変換してください。
+
+2. 【画像の内容解説】
+この画像や図解が何を説明しているのか、その構造、プロセス、意図を詳しく分析して解説してください。
+
+3. 【再現用生成プロンプト】
+この画像（特に図解やイラスト部分）を、画像生成AI（DALL-E 3やMidjourney、Stable Diffusionなど）で「全く同じ構成と内容」で再現するための詳細なプロンプトを作成してください。被写体、配色、スタイル、配置、アスペクト比などを具体的に含めてください。
+
+注意：回答に '\\n' （バックスラッシュとn）という文字列を絶対に含めないでください。改行したい場合は、実際の改行コード（Enterキーの改行）を使用してください。`;
 
         try {
             const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }, { inline_data: { mime_type: "image/jpeg", data: base64 } }] }] })
+                body: JSON.stringify({ contents: [{ parts: [{ text: customPrompt }, { inline_data: { mime_type: "image/jpeg", data: base64 } }] }] })
             });
 
             const data = await response.json();
-            let result = data.candidates?.[0]?.content?.parts?.[0]?.text || "解析に失敗しました。";
+            let result = data.candidates?.[0]?.content?.parts?.[0]?.text || "Analysis failed.";
 
+            // 念のための置換処理
             result = result.replace(/\\n/g, '\n').replace(/\n\n+/g, '\n\n');
 
             markdownView.innerHTML = marked.parse(result);
             rawText.value = result;
-            updateStatus("✅ 解析完了", "#dcfce7", "#166534");
+            updateStatus("✅ Analysis Complete", "#dcfce7", "#166534");
             saveHistory(result);
         } catch (e) {
-            updateStatus("❌ エラーが発生しました", "#fee2e2", "#991b1b");
+            updateStatus("❌ Error Occurred", "#fee2e2", "#991b1b");
         } finally {
-            status.classList.remove('analyzing');
+            previewBox.classList.remove('scanning');
         }
     }
 
     function saveHistory(content) {
         let h = JSON.parse(localStorage.getItem('app_history') || '[]');
-        h.unshift({ content, time: new Date().toLocaleTimeString() });
+        h.unshift({ content, time: new Date().toLocaleString() });
         localStorage.setItem('app_history', JSON.stringify(h.slice(0, 10)));
         loadHistory();
     }
 
     function loadHistory() {
-        currentHistory = JSON.parse(localStorage.getItem('app_history') || '[]');
+        const historyList = document.getElementById('historyList');
+        const currentHistory = JSON.parse(localStorage.getItem('app_history') || '[]');
         historyList.innerHTML = currentHistory.map((item, index) => 
             `<div class="history-item" onclick="restoreHistory(${index})">
                 <span><i class="far fa-clock"></i> ${item.time}</span>
-                <span style="opacity:0.6">${item.content.substring(0, 15).replace(/[\n\\]/g, ' ')}...</span>
-                <i class="fas fa-chevron-right" style="font-size:10px; opacity:0.5"></i>
+                <i class="fas fa-chevron-right"></i>
             </div>`
         ).join('');
     }
 
     function restoreHistory(index) {
-        const item = currentHistory[index];
-        const cleanContent = item.content.replace(/\\n/g, '\n');
-        markdownView.innerHTML = marked.parse(cleanContent);
-        rawText.value = cleanContent;
-        updateStatus("📜 履歴を表示中", "#f1f5f9", "#475569");
-        // スクロール
-        document.querySelector('.result-box').scrollIntoView({ behavior: 'smooth' });
+        const h = JSON.parse(localStorage.getItem('app_history') || '[]');
+        const content = h[index].content;
+        markdownView.innerHTML = marked.parse(content);
+        rawText.value = content;
+        updateStatus("📜 Restored from History", "#f1f5f9", "#475569");
+        window.scrollTo({ top: document.querySelector('.result-box').offsetTop - 20, behavior: 'smooth' });
     }
 
     function copyToClipboard() {
         if (!rawText.value) return;
         navigator.clipboard.writeText(rawText.value).then(() => {
-            const originalStatus = status.innerText;
-            const originalBg = status.style.background;
-            updateStatus("📋 クリップボードにコピーしました", "#dcfce7", "#166534");
-            setTimeout(() => updateStatus(originalStatus, originalBg), 2000);
+            alert("クリップボードにコピーしました");
         });
     }
 
     function saveAsFile() {
-        if (!rawText.value) return alert("保存するデータがありません");
+        if (!rawText.value) return;
         const blob = new Blob([rawText.value], { type: 'text/plain' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = `Vision_Result_${Date.now()}.txt`;
+        a.download = `Vision_Analysis_${Date.now()}.txt`;
         a.click();
     }
 
     function saveKeys() {
-        const key = document.getElementById('gemini-key').value;
-        localStorage.setItem('gemini_api_key', key);
-        alert("APIキーを安全に保存しました。");
+        localStorage.setItem('gemini_api_key', document.getElementById('gemini-key').value);
+        alert("APIキーを保存しました。");
     }
 
-    function updateStatus(msg, bg, color = "#000") { 
+    function updateStatus(msg, bg, color) { 
         status.innerText = msg; 
         status.style.background = bg; 
         status.style.color = color;
