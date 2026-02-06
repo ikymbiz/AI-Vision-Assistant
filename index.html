@@ -3,200 +3,212 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Vision Setup</title>
+    <title>AI Vision Pro - Deployer Style</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         :root {
-            --bg-color: #f4f7f6;
+            --bg-color: #f0f2f5;
             --card-bg: #ffffff;
-            --text-color: #333;
-            --btn-bg: #e0e0e0;
-            --btn-hover: #d0d0d0;
+            --text-main: #222222;
+            --text-sub: #555555;
             --accent: #4285f4;
-            --shadow: 0 10px 25px rgba(0,0,0,0.05);
+            --btn-light: #f8f9fa;
+            --border: #dddddd;
+            --shadow: 0 12px 40px rgba(0,0,0,0.12);
         }
 
-        /* ダークモード用（toggleThemeで切り替え） */
+        /* ダークモード設定 */
         body.dark-mode {
             --bg-color: #1a1a1b;
-            --card-bg: #2d2d2e;
-            --text-color: #f1f3f4;
-            --btn-bg: #3c4043;
-            --btn-hover: #4c5054;
-            --shadow: 0 10px 25px rgba(0,0,0,0.3);
+            --card-bg: #222222;
+            --text-main: #dddddd;
+            --text-sub: #bbbbbb;
+            --btn-light: #333333;
+            --border: #444444;
+            --shadow: 0 12px 40px rgba(0,0,0,0.4);
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Courier New', Courier, monospace; /* 等幅フォント */
             background-color: var(--bg-color);
-            color: var(--text-color);
+            color: var(--text-main);
             margin: 0;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            transition: background 0.3s ease;
+            min-height: 100vh;
+            padding: 20px;
+            transition: 0.3s;
         }
 
-        /* .card スタイル: 中央配置・白背景・シャドウ */
+        /* .card スタイル */
         .card {
             background-color: var(--card-bg);
-            padding: 40px;
-            border-radius: 24px;
-            box-shadow: var(--shadow);
             width: 100%;
-            max-width: 380px;
+            max-width: 500px;
+            padding: 40px 30px;
+            border-radius: 28px;
+            box-shadow: var(--shadow);
             text-align: center;
-            transition: transform 0.3s ease, background 0.3s ease;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-        }
-
-        .icon-header {
-            font-size: 3rem;
-            margin-bottom: 10px;
+            box-sizing: border-box;
         }
 
         h2 {
-            margin-top: 0;
+            font-size: 1.6rem;
             margin-bottom: 30px;
-            font-weight: 600;
+            font-weight: bold;
         }
 
-        /* 入力フィールド */
-        .input-group {
-            position: relative;
-            margin-bottom: 25px;
-            text-align: left;
-        }
-
-        .input-group label {
-            display: block;
-            font-size: 13px;
-            margin-bottom: 8px;
-            margin-left: 5px;
-            color: var(--text-color);
-            opacity: 0.8;
-        }
-
-        input {
-            width: 100%;
-            padding: 14px 18px;
-            border-radius: 12px;
-            border: 1px solid rgba(0,0,0,0.1);
-            background-color: rgba(0,0,0,0.02);
-            color: var(--text-color);
-            font-size: 15px;
-            box-sizing: border-box;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        body.dark-mode input {
-            border-color: rgba(255,255,255,0.1);
-            background-color: rgba(255,255,255,0.05);
-        }
-
-        input:focus {
-            border-color: var(--accent);
-        }
-
-        /* ボタン: 薄い色・ホバーエフェクト */
-        .btn-container {
+        /* ボタンデザイン */
+        .btn-group {
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            margin-top: 30px;
+            gap: 15px;
+            margin-bottom: 30px;
         }
 
         button {
+            font-family: inherit;
             padding: 14px;
-            border: none;
-            border-radius: 12px;
-            background-color: var(--btn-bg);
-            color: var(--text-color);
-            font-size: 14px;
-            font-weight: 600;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            background-color: var(--btn-light);
+            color: var(--text-main);
             cursor: pointer;
-            transition: all 0.2s ease;
+            font-weight: bold;
+            transition: 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 10px;
         }
 
         button:hover {
-            background-color: var(--btn-hover);
-            transform: scale(1.02);
+            background-color: var(--border);
+            transform: translateY(-1px);
         }
 
-        button.primary {
+        .btn-primary {
             background-color: var(--accent);
             color: white;
+            border: none;
         }
 
-        button.primary:hover {
-            opacity: 0.9;
-            background-color: var(--accent);
+        /* 入力エリア */
+        .input-section {
+            text-align: left;
+            margin-bottom: 25px;
         }
 
-        .footer-note {
-            margin-top: 25px;
-            font-size: 11px;
-            opacity: 0.5;
+        label {
+            display: block;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            color: var(--text-sub);
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-main);
+            font-family: inherit;
+            box-sizing: border-box;
+            margin-bottom: 15px;
+        }
+
+        /* 解析結果表示（改行問題を修正） */
+        .result-area {
+            background: rgba(0,0,0,0.03);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: left;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            min-height: 100px;
+            white-space: pre-wrap; /* 改行を保持 */
+            border: 1px dashed var(--border);
+        }
+
+        /* Markdown内の余白調整 */
+        .result-area p { margin-bottom: 1em; }
+        .result-area ul { padding-left: 20px; }
+
+        .footer {
+            margin-top: 30px;
+            font-size: 0.8rem;
+            color: var(--text-sub);
+            line-height: 1.8;
+        }
+
+        .link-text {
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 0.9rem;
         }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <div class="icon-header">🚀</div>
-        <h2>AI Vision Setup</h2>
+<div class="card">
+    <h2>🚀 GitHub Deployer v6</h2>
 
-        <div class="input-group">
-            <label>🔑 API Token</label>
-            <input type="password" id="api-token" placeholder="Enter your key here...">
-        </div>
-
-        <div class="btn-container">
-            <button class="primary" onclick="saveToken()">
-                <span>✅</span> トークンを保存
-            </button>
-            <button onclick="toggleTheme()">
-                <span id="theme-icon">🌙</span> テーマを切り替え
-            </button>
-        </div>
-
-        <div class="footer-note">
-            N5. Connection Secured<br>
-            6. All systems operational
-        </div>
+    <div class="btn-group">
+        <button onclick="toggleTheme()">
+            <span>🌙</span> Dark Mode
+        </button>
+        <a href="#" class="link-text">🚩 トークンを新規発行する</a>
     </div>
 
-    <script>
-        // ダミー関数: テーマの切り替え
-        function toggleTheme() {
-            document.body.classList.toggle('dark-mode');
-            const icon = document.getElementById('theme-icon');
-            if (document.body.classList.contains('dark-mode')) {
-                icon.innerText = '☀️';
-            } else {
-                icon.innerText = '🌙';
-            }
-            console.log("Theme toggled");
+    <div class="input-section">
+        <label>🔑 GitHub Access Token:</label>
+        <input type="password" id="api-token" placeholder="ghp_xxxxxxxxxxxx">
+
+        <label>📄 デプロイするファイル:</label>
+        <textarea id="file-content" rows="3" placeholder="index.html, style.css..."></textarea>
+    </div>
+
+    <button class="btn-primary" onclick="saveToken()" style="width: 100%;">
+        ✅ 構成を保存して解析
+    </button>
+
+    <div class="footer">
+        N5. <code>System Ready</code><br>
+        6. <code>Wait for input...</code>
+    </div>
+
+    <hr style="margin: 30px 0; border: 0; border-top: 1px solid var(--border);">
+
+    <div id="markdown-view" class="result-area">解析結果がここに表示されます...</div>
+</div>
+
+<script>
+    // ダミー関数
+    function toggleTheme() {
+        document.body.classList.toggle('dark-mode');
+        const btn = document.querySelector('button span');
+        btn.innerText = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+    }
+
+    function saveToken() {
+        const token = document.getElementById('api-token').value;
+        const resultView = document.getElementById('markdown-view');
+        
+        if(!token) {
+            alert("🔑 トークンを入力してください");
+            return;
         }
 
-        // ダミー関数: トークンの保存
-        function saveToken() {
-            const token = document.getElementById('api-token').value;
-            if(!token) {
-                alert("トークンを入力してください");
-                return;
-            }
-            alert("トークンを保存しました (Dummy)");
-            console.log("Token saved:", token);
-        }
-    </script>
+        // 表示テスト用のサンプルMarkdown（改行が正しく反映されるか確認用）
+        const sampleMarkdown = `### ✅ 解析完了\n\n**1. 内容:** 構造を検知しました。\n\n**2. 構成:**\n* インデックス作成\n* スタイルの適用\n\n> 🚀 デプロイ準備が整いました。`;
+        
+        // markedを使用してパース
+        resultView.innerHTML = marked.parse(sampleMarkdown);
+        console.log("Token saved:", token);
+    }
+</script>
+
 </body>
 </html>
